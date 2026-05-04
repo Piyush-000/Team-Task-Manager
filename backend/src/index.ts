@@ -15,6 +15,14 @@ const port = process.env.PORT || 4000;
 app.use(cors({ origin: true }));
 app.use(express.json());
 
+app.get("/", (_req, res) => {
+  res.json({
+    name: "Team Task Manager API",
+    status: "running",
+    health: "/health",
+  });
+});
+
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
