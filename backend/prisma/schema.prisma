@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+model User {
+  id         String          @id @default(cuid())
+  name       String?
+  email      String          @unique
+  password   String
+  role       Role            @default(MEMBER)
+  projects   Project[]       @relation("ProjectOwner")
+  tasks      Task[]
+  membership ProjectMember[]
+  createdAt  DateTime        @default(now())
+}
+
+model Project {
+  id          String          @id @default(cuid())
+  name        String
+  description String?
+  ownerId     String
+  owner       User            @relation(fields: [ownerId], references: [id], name: "ProjectOwner")
+  members     ProjectMember[]
+  tasks       Task[]
+  createdAt   DateTime        @default(now())
+}
+
+model ProjectMember {
+  id        String   @id @default(cuid())
+  project   Project  @relation(fields: [projectId], references: [id])
+  projectId String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  role      Role     @default(MEMBER)
+  addedAt   DateTime @default(now())
+
+  @@unique([projectId, userId])
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus @default(TODO)
+  dueDate     DateTime?
+  project     Project    @relation(fields: [projectId], references: [id])
+  projectId   String
+  assignee    User?      @relation(fields: [assigneeId], references: [id])
+  assigneeId  String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
